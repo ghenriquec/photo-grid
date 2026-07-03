@@ -61,24 +61,17 @@ const spacingOptions: Array<{ value: SpacingChoice; label: string }> = [
   { value: "large", label: "Grande" },
 ];
 
-const backgroundOptions = [
+const backgroundOptions: Array<{ value: BackgroundChoice; label: string }> = [
   { value: "white", label: "Branco" },
   { value: "transparent", label: "Transp." },
   { value: "beige", label: "Bege" },
   { value: "gray", label: "Cinza" },
 ];
 
-const borderOptions = [
+const borderOptions: Array<{ value: BorderChoice; label: string }> = [
   { value: "none", label: "Sem borda" },
-  { value: "thin", label: "Fina" },
+  { value: "fine", label: "Fina" },
   { value: "rounded", label: "Arred." },
-];
-
-const formatOptions: Array<{ value: CellFormatChoice; label: string }> = [
-  { value: "vertical", label: "Vertical" },
-  { value: "square", label: "Quadrado" },
-  { value: "horizontal", label: "Horizontal" },
-  { value: "auto", label: "Auto" },
 ];
 
 const sizeOptions: Array<{ value: GridSizeChoice; label: string }> = [
@@ -86,6 +79,13 @@ const sizeOptions: Array<{ value: GridSizeChoice; label: string }> = [
   { value: "medium", label: "Médio" },
   { value: "small", label: "Pequeno" },
   { value: "large", label: "Grande" },
+];
+
+const formatOptions: Array<{ value: CellFormatChoice; label: string }> = [
+  { value: "vertical", label: "Vertical" },
+  { value: "square", label: "Quadrado" },
+  { value: "horizontal", label: "Horizontal" },
+  { value: "auto", label: "Auto" },
 ];
 
 const spacingByChoice: Record<SpacingChoice, number> = {
@@ -260,17 +260,24 @@ function blobToDataUrl(blob: Blob) {
   });
 }
 
+type SegmentOption<T extends string> = {
+  value: T;
+  label: string;
+};
+
+type SegmentGroupProps<T extends string> = {
+  label: string;
+  value: T;
+  options: Array<SegmentOption<T>>;
+  onChange: React.Dispatch<React.SetStateAction<T>>;
+};
+
 function SegmentGroup<T extends string>({
   label,
   value,
   options,
   onChange,
-}: {
-  label: string;
-  value: T;
-  options: Array<{ value: T; label: string }>;
-  onChange: (value: T) => void;
-}) {
+}: SegmentGroupProps<T>) {
   return (
     <div className="space-y-2">
       <div className="text-sm font-medium text-emerald-950">{label}</div>
@@ -281,19 +288,19 @@ function SegmentGroup<T extends string>({
 
           return (
             <button
-              key={option.value}
-              type="button"
               aria-pressed={selected}
-              title={option.label}
-              onClick={() => onChange(option.value)}
               className={cn(
                 "flex h-12 w-full min-w-0 items-center justify-center rounded-md border px-1.5",
                 "text-center text-[12px] font-medium leading-none transition",
-                "whitespace-nowrap overflow-hidden",
+                "overflow-hidden whitespace-nowrap",
                 selected
                   ? "border-emerald-700 bg-emerald-700 text-white shadow-sm"
                   : "border-stone-300 bg-white text-emerald-950 hover:border-emerald-500 hover:bg-emerald-50",
               )}
+              key={option.value}
+              onClick={() => onChange(option.value)}
+              title={option.label}
+              type="button"
             >
               <span className="block max-w-full truncate">
                 {option.label}
@@ -755,37 +762,42 @@ export default function Home() {
                 </span>
               </div>
               <div className="space-y-5">
-                <SegmentGroup
+                <SegmentGroup<GridSizeChoice>
                   label="Tamanho"
                   onChange={setGridSize}
                   options={sizeOptions}
                   value={gridSize}
                 />
-                <SegmentGroup
+
+                <SegmentGroup<ColumnChoice>
                   label="Colunas"
                   onChange={setColumns}
                   options={columnOptions}
                   value={columns}
                 />
-                <SegmentGroup
+
+                <SegmentGroup<SpacingChoice>
                   label="Espaçamento"
                   onChange={setSpacing}
                   options={spacingOptions}
                   value={spacing}
                 />
-                <SegmentGroup
+
+                <SegmentGroup<BackgroundChoice>
                   label="Fundo"
                   onChange={setBackground}
                   options={backgroundOptions}
                   value={background}
                 />
-                <SegmentGroup
+
+                <SegmentGroup<BorderChoice>
                   label="Borda"
                   onChange={setBorder}
                   options={borderOptions}
                   value={border}
                 />
-                <SegmentGroup
+
+                <SegmentGroup<CellFormatChoice>
                   label="Células"
                   onChange={setCellFormat}
                   options={formatOptions}
@@ -890,9 +902,9 @@ export default function Home() {
                 className={cn(
                   "mb-4 flex items-center gap-2 rounded-md border px-3 py-2 text-sm",
                   status.type === "success" &&
-                    "border-emerald-200 bg-emerald-50 text-emerald-800",
+                  "border-emerald-200 bg-emerald-50 text-emerald-800",
                   status.type === "error" &&
-                    "border-red-200 bg-red-50 text-red-700",
+                  "border-red-200 bg-red-50 text-red-700",
                 )}
               >
                 {status.type === "success" ? (
@@ -923,9 +935,9 @@ export default function Home() {
                       className={cn(
                         "grid-photo-cell",
                         border === "fine" &&
-                          "border border-stone-200 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]",
+                        "border border-stone-200 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]",
                         border === "rounded" &&
-                          "rounded-md border border-stone-200 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]",
+                        "rounded-md border border-stone-200 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]",
                       )}
                       key={photo.id}
                       style={{
