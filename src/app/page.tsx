@@ -705,13 +705,13 @@ export default function Home() {
         <header className="flex flex-col gap-3 border-b border-stone-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-emerald-700">
-              MontaGrid Escolar
+              Grid De Fotos
             </p>
             <h1 className="mt-1 text-3xl font-semibold text-emerald-950 sm:text-4xl">
-              Grid Fácil Escolar
+              Grid Fácil
             </h1>
             <p className="mt-2 max-w-2xl text-base text-stone-600">
-              Monte o bloco de fotos do relatório sem cortar nenhum aluno.
+              Monte o bloco de fotos do seu relatório.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-stone-600">
