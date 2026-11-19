@@ -10,7 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Grid Fácil",
-  description: "Monte grids de fotos de forma facil e rapida",
+  description:
+    "Monte grids de fotos para relatórios e documentos direto no navegador, sem enviar suas imagens para nenhum servidor.",
 };
 
 export default function RootLayout({

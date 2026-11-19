@@ -398,8 +398,23 @@ export default function Home() {
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
+  const [previewWidth, setPreviewWidth] = useState<number | null>(null);
+
   const gridRef = useRef<HTMLDivElement | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const element = previewRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setPreviewWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -442,6 +457,24 @@ export default function Home() {
     });
   }, []);
 
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, [contenteditable='true']")) return;
+
+      const files = Array.from(event.clipboardData?.files ?? []).filter(
+        (file) => file.type.startsWith("image/"),
+      );
+      if (files.length === 0) return;
+
+      event.preventDefault();
+      onDrop(files);
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [onDrop]);
+
   const { getInputProps, getRootProps, isDragActive, open } = useDropzone({
     accept: {
       "image/*": [],
@@ -474,6 +507,8 @@ export default function Home() {
   const aspectRatio = resolveAspectRatio(cellFormat, resolvedColumns);
   const aspectRatioValue = resolveAspectRatioValue(cellFormat, resolvedColumns);
   const hasPhotos = photos.length > 0;
+  const previewScale =
+    previewWidth && previewWidth < gridWidth ? previewWidth / gridWidth : 1;
 
   const removePhoto = useCallback((photo: PhotoItem) => {
     URL.revokeObjectURL(photo.url);
@@ -558,6 +593,10 @@ export default function Home() {
         context.save();
         context.fillStyle = cellBackground;
         drawCellShape(context, x, y, cellWidth, cellHeight, border);
+        if (border === "rounded") {
+          drawRoundedPath(context, x, y, cellWidth, cellHeight, 8);
+          context.clip();
+        }
         context.drawImage(
           image,
           x + (cellWidth - drawWidth) / 2,
@@ -587,7 +626,7 @@ export default function Home() {
   const downloadBlob = useCallback((blob: Blob, extension: string) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `grid-facil-escolar-${new Date()
+    link.download = `grid-facil-${new Date()
       .toISOString()
       .slice(0, 10)}.${extension}`;
     link.href = url;
@@ -599,7 +638,7 @@ export default function Home() {
 
   const copyBlobAsHtmlImage = useCallback(async (blob: Blob) => {
     const dataUrl = await blobToDataUrl(blob);
-    const html = `<img src="${dataUrl}" alt="Grid Facil Escolar" />`;
+    const html = `<img src="${dataUrl}" alt="Grid Fácil" />`;
 
     if (navigator.clipboard && window.ClipboardItem) {
       await navigator.clipboard.write([
@@ -613,7 +652,7 @@ export default function Home() {
 
     const copyListener = (event: ClipboardEvent) => {
       event.clipboardData?.setData("text/html", html);
-      event.clipboardData?.setData("text/plain", "Grid Facil Escolar");
+      event.clipboardData?.setData("text/plain", "Grid Fácil");
       event.preventDefault();
     };
 
@@ -744,7 +783,8 @@ export default function Home() {
                     Enviar fotos
                   </p>
                   <p className="mt-1 text-sm text-stone-500">
-                    Arraste imagens aqui ou selecione do computador.
+                    Arraste imagens aqui, cole com Ctrl+V ou selecione do
+                    computador.
                   </p>
                 </div>
                 <Button onClick={open} type="button">
@@ -916,12 +956,16 @@ export default function Home() {
               </div>
             ) : null}
 
-            <div className="min-h-[620px] overflow-auto rounded-md border border-stone-200 bg-[repeating-linear-gradient(45deg,#f7f7f4_0,#f7f7f4_10px,#efeee9_10px,#efeee9_20px)] p-5">
+            <div
+              className="min-h-[320px] overflow-auto rounded-md border border-stone-200 bg-[repeating-linear-gradient(45deg,#f7f7f4_0,#f7f7f4_10px,#efeee9_10px,#efeee9_20px)] p-3 sm:p-5 xl:min-h-[620px]"
+              ref={previewRef}
+            >
               {hasPhotos ? (
                 <div
                   className="mx-auto"
                   ref={gridRef}
                   style={{
+                    zoom: previewScale,
                     background: gridBackground,
                     display: "grid",
                     gap,
@@ -950,7 +994,7 @@ export default function Home() {
                   ))}
                 </div>
               ) : (
-                <div className="grid min-h-[560px] place-items-center rounded-md border border-dashed border-stone-300 bg-white/80 p-6 text-center">
+                <div className="grid min-h-[290px] place-items-center xl:min-h-[560px] rounded-md border border-dashed border-stone-300 bg-white/80 p-6 text-center">
                   <div className="max-w-sm">
                     <div className="mx-auto grid h-12 w-12 place-items-center rounded-md bg-emerald-100 text-emerald-800">
                       <ImagePlus aria-hidden="true" className="h-6 w-6" />
